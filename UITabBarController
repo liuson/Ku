@@ -1,0 +1,148 @@
+/*实现类似微博选择主题的单选操作，已经简单的关于TabBar的UI界面搭建*/
+//这里是TabBar主界面当内容
+//MainViewController.h文件
+#import <UIKit/UIKit.h>
+
+@interface MainViewController : UITabBarController<UINavigationControllerDelegate>
+{
+
+    UIImageView *imageView;
+}
+
+@end
+
+
+//MainViewController.m文件
+#import "MainViewController.h"
+#import "HomeViewController.h"
+#import "MessageViewController.h"
+#import "ToumingViewController.h"
+#import "FriendViewController.h"
+#import "MoreViewController.h"
+
+@interface MainViewController ()
+{
+
+    CGFloat width;
+    CGFloat heigth;
+}
+
+@end
+
+@implementation MainViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view.
+    
+//    self.view.backgroundColor = [UIColor whiteColor];
+    //隐藏tabbarview
+    self.tabBar.hidden = YES;
+    //定义自己的tabbarview
+    [self _initTabBarView];
+    //创建子控制器
+    [self _initVieControl];
+
+}
+
+- (void)_initTabBarView{
+
+    //宽
+    width = [UIScreen mainScreen].bounds.size.width;
+    //高
+    heigth = [UIScreen mainScreen].bounds.size.height;
+
+    imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, heigth - 49, width, 49)];
+    imageView.image = [UIImage imageNamed:@"mask_navbar.png"];
+    [self.view addSubview:imageView];
+    
+    imageView.userInteractionEnabled = YES;
+    
+    //创建选择视图
+    UIImageView *imaView  = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 64, 45)];
+    imaView.image = [UIImage imageNamed:@"home_bottom_tab_arrow.png"];
+    imaView.tag = 100;
+    
+    //创建5个按钮
+    for (int i = 0; i < 5; i++) {
+        UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
+        btn.tag = 200 + i;
+        btn.frame = CGRectMake(width / 5 * i, 0, width / 5, 49);
+        [btn addTarget:self action:@selector(btnClick:) forControlEvents:UIControlEventTouchUpInside];
+        NSString *imgName = [NSString stringWithFormat:@"home_tab_icon_%d.png", i + 1];
+        [btn setImage:[UIImage imageNamed:imgName] forState:UIControlStateNormal];
+        [imageView addSubview:btn];
+        
+        if (i == 0) {
+            imaView.center = btn.center;
+        }
+    }
+    
+    [imageView addSubview:imaView];
+
+}
+
+
+//按钮点击事件
+- (void)btnClick:(UIButton *)btn
+{
+    
+    //设置选择的控制器
+    self.selectedIndex = btn.tag - 200;
+    
+    UIView *seView = [imageView viewWithTag:100];
+    
+    
+    [UIView animateWithDuration:0.5
+                     animations:^{
+                         seView.center = btn.center;
+                     }];
+    
+}
+
+- (void)_initVieControl{
+    
+    //三级控制器
+    HomeViewController *home = [[HomeViewController alloc] init];
+    MessageViewController *message = [[MessageViewController alloc] init];
+    ToumingViewController *tou = [[ToumingViewController alloc] init];
+    FriendViewController *fre = [[FriendViewController alloc] init];
+    MoreViewController *more = [[MoreViewController alloc] init];
+    
+    NSArray *arr = @[home,message,tou,fre,more];
+    
+    NSMutableArray *mArr = [NSMutableArray array];
+    
+    //二级控制器
+    for (int i = 0; i < arr.count; i ++) {
+        UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:arr[i]];
+        nav.delegate = self;
+        [mArr addObject:nav];
+    }
+    
+    //一级控制器
+    self.viewControllers = mArr;
+
+    
+}
+
+#pragma mark -UINavigationControllerDelegate
+- (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+{
+    
+    NSInteger count = navigationController.viewControllers.count;
+    //当进入二级界面后隐藏标签栏
+    if (count == 2) {
+        [UIView animateWithDuration:0.25
+                         animations:^{
+                         imageView.frame = CGRectMake(-width, heigth - 49, width, 49);
+                         }];
+    }else if (count == 1) {
+        [UIView animateWithDuration:0.25
+                         animations:^{
+                         imageView.frame = CGRectMake(0, heigth - 49, width, 49);
+                         }];
+    }
+}
+
+@end
